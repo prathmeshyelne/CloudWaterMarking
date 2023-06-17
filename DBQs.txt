@@ -1,0 +1,321 @@
+ CREATE TABLE `users` (
+  `userid` varchar(200) NOT NULL,
+  `username` varchar(200) DEFAULT NULL,
+  `pass` varchar(200) DEFAULT NULL,
+  `loginsts` varchar(200) DEFAULT NULL,
+  `utype` varchar(200) DEFAULT NULL,
+  `email` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `usergroups` (
+  `gid` int NOT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `groupName` varchar(200) DEFAULT NULL,
+  `groupDesc` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`gid`),
+  UNIQUE KEY `groupName` (`groupName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `userdetails` (
+  `id` int NOT NULL,
+  `userName` varchar(200) DEFAULT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `mobile` varchar(200) DEFAULT NULL,
+  `email` varchar(200) DEFAULT NULL,
+  `state` varchar(200) DEFAULT NULL,
+  `city` varchar(200) DEFAULT NULL,
+  `gender` varchar(200) DEFAULT NULL,
+  `dob` varchar(200) DEFAULT NULL,
+  `addr` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `usagelog` (
+  `logid` int NOT NULL,
+  `userid` varchar(80) DEFAULT NULL,
+  `action` varchar(200) DEFAULT NULL,
+  `actiondt` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`logid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `statemaster` (
+  `state` varchar(200) NOT NULL,
+  PRIMARY KEY (`state`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `loginlog` (
+  `logid` int NOT NULL,
+  `logindt` varchar(100) DEFAULT NULL,
+  `loginmonth` int DEFAULT NULL,
+  `loginyear` int DEFAULT NULL,
+  `userid` varchar(80) DEFAULT NULL,
+  `logintype` varchar(80) DEFAULT NULL,
+  PRIMARY KEY (`logid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `groupmembers` (
+  `memId` int NOT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `memUserid` varchar(200) DEFAULT NULL,
+  `memberName` varchar(200) DEFAULT NULL,
+  `groupName` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`memId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `groupcommunication` (
+  `gcId` int NOT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `userName` varchar(200) DEFAULT NULL,
+  `groupId` int DEFAULT NULL,
+  `groupName` varchar(200) DEFAULT NULL,
+  `msg` longblob,
+  `seckey` longblob,
+  `msgTyp` varchar(200) DEFAULT NULL,
+  `dt` varchar(200) DEFAULT NULL,
+  `tm` varchar(200) DEFAULT NULL,
+  `encsts` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`gcId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `documents` (
+  `docid` int NOT NULL,
+  `title` varchar(200) DEFAULT NULL,
+  `docDesc` varchar(500) DEFAULT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `docpath` varchar(200) DEFAULT NULL,
+  `dt` varchar(50) DEFAULT NULL,
+  `tm` varchar(50) DEFAULT NULL,
+  `doctype` varchar(200) DEFAULT NULL,
+  `encSts` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`docid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `cloudpayments` (
+  `id` int NOT NULL,
+  `tenantid` varchar(200) NOT NULL,
+  `paydt` varchar(200) DEFAULT NULL,
+  `month` int unsigned DEFAULT NULL,
+  `year` int unsigned DEFAULT NULL,
+  `services` varchar(8000) NOT NULL,
+  `rates` varchar(8000) NOT NULL,
+  `susage` varchar(8000) NOT NULL,
+  `rents` varchar(8000) NOT NULL,
+  `total` float NOT NULL,
+  `status` varchar(200) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `cities` (
+  `city` text,
+  `state` text
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `accessperdoc` (
+  `acid` int NOT NULL,
+  `msgid` int DEFAULT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `ruserid` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`acid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `userlogin`(in userid1 varchar(200),in pass1 varchar(200))
+begin
+select * from users where userid=userid1 and pass=pass1 and loginsts='active';
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertUser`(in userid1 varchar(200),in pass1 varchar(200), in userName1 varchar(200), in mob varchar(30), in emailId varchar(200)
+,city1 varchar(200),state1 varchar(200),in gender1 varchar(200),in addr1 varchar(200),in dob1 varchar(200))
+begin
+declare mxid integer;
+declare dt varchar(200);
+declare mxid1 integer;
+set mxid=(select ifnull(max(id),1000) from userdetails);
+set mxid=mxid+1;
+set mxid1=(select ifnull(max(subId),1000) from subscribedservices);
+set mxid1=mxid1+1;
+insert into userdetails values(mxid,userName1,userid1,mob,emailId,state1,city1,gender1,dob1,addr1);
+insert into users values(userid1,userName1,pass1,'active','user',emailId); 
+set dt=(select DATE_FORMAT(CURDATE(), '%d/%m/%Y') as d);
+insert into subscribedservices values(mxid1,'Data_Encryption',dt,userid1,'off'); 
+insert into subscribedservices values((mxid1+1),'Document_Encryption',dt,userid1,'off');
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertGroups`(in userid1 varchar(200),in groupName1 varchar(200), in groupDesc1 varchar(200))
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(gid),1000) from userGroups);
+set mxid=mxid+1;
+insert into userGroups values(mxid,userid1,groupName1,groupDesc1); 
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertGroupsComm`(in userid1 varchar(200),in username1 varchar(200),in groupId1 integer,in groupName1 varchar(200), in msg1 longblob,in skey1 varchar(200),in msgtyp1 varchar(200),in dt1 varchar(200),in tm1 varchar(200),in encsts1 varchar(200))
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(gcId),1000) from groupCommunication);
+set mxid=mxid+1;
+insert into groupCommunication values(mxid,userid1,username1,groupId1,groupName1,msg1,aes_encrypt(skey1,mxid),msgtyp1,dt1,tm1,encsts1); 
+select mxid;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertGroupMem`(in userid1 varchar(200),in groupName1 varchar(200), in memUserid1 varchar(200),in memName1 varchar(200))
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(memId),1000) from groupMembers);
+set mxid=mxid+1;
+insert into groupMembers values(mxid,userid1,memUserid1,memName1,groupName1); 
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertDocuments`(in docid1 int,in title1 varchar(200), in docdesc1 varchar(500),in uid varchar(200), in docpath1 varchar(200),in dt1 varchar(200),in tm1 varchar(200),in doctype1 varchar(200),in encsts1 varchar(200))
+begin
+ 
+insert into documents values(docid1,title1,docdesc1,uid,docpath1,dt1,tm1,doctype1,encsts1);
+ 
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertCommunication`(in userid1 varchar(200),in userName1 varchar(200),in resUserid1 varchar(200),resUserName1 varchar(200), in msg1 longblob,in skey1 varchar(200),in msgtyp1 varchar(200),in dt1 varchar(200),in tm1 varchar(200),in encsts varchar(200))
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(gcId),1000) from communication);
+set mxid=mxid+1;
+insert into communication values(mxid,userid1,userName1,resUserid1,resUserName1,msg1,aes_encrypt(skey1,mxid),msgtyp1,dt1,tm1,encsts); 
+select mxid;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertAccesPerDoc`(in userid1 varchar(200), in ruserid1 varchar(200),in msgid1 int)
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(acid),1000) from accessPerDoc);
+set mxid=mxid+1;
+insert into accessPerDoc values(mxid,msgid1,userid1,ruserid1); 
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getsharedDoc`(in uid varchar(200))
+begin
+ select * from documents where docid in (select msgid as docid from accessperDoc where ruserid=uid);
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsers`(in searchText varchar(200),in groupName1 varchar(200),in uid varchar(200))
+begin
+select * from userdetails where userName like concat('%',searchText,'%') and userid not in(select userid from groupMembers where userid= uid and groupName=groupName1);
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getstates`()
+begin
+select distinct(state) from statemaster;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getusers1`(in userid1 varchar(200))
+BEGIN
+select * from userdetails where userid<>userid1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsersAll`()
+begin
+select * from userdetails ;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getDocs`(in userid1 varchar(200))
+begin
+select * from documents where userid=userid1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getGroupMembers`(in userid1 varchar(200),in groupName1 varchar(200))
+begin
+select g.*,u.mobile,u.email,u.addr,u.dob from groupMembers g inner join userdetails u on g.memUserid=u.userid where g.userid=userid1 and g.groupName=groupName1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getGroups`(in userid1 varchar(200))
+begin
+select * from userGroups where userid=userid1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getGroups1`(in userid1 varchar(200))
+begin
+select distinct(g.groupName), u.gid from groupmembers g inner join usergroups u on g.groupName=u.groupName where g.userid=userid1 or g.memUserid=userid1;
+
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getMaxIdDocuments`()
+begin
+select ifnull(max(docid),1000) as mxid from documents;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getcities`(in state1 varchar(200))
+begin
+select * from cities where state=state1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUsers1`(in uid varchar(200))
+begin
+select * from userdetails where userid<>uid;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUsers`(in groupName1 varchar(200),in uid varchar(200))
+begin
+select * from userdetails where userid not in(select userid from groupMembers where userid= uid and groupName=groupName1);
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deleteGroupMem`(in memId1 varchar(200))
+begin
+delete from groupmembers where memId=memId1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `chkDocumentAuthUser`(in userid1 varchar(200),in docid1 varchar(200))
+begin
+select * from documents where userid=userid1 and docid=docid1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `chkDocumentAuthOtherUser`(in userid1 varchar(200),in docid1 varchar(200))
+begin
+ select * from documents where docid in (select msgid as docid from accessperDoc where ruserid=userid1);
+ end$$
+DELIMITER ;
